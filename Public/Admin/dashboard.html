@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard - Reservations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            background: #f5f5f5;
+        }
+        .header {
+            background: linear-gradient(135deg, #8B0000, #D4AF37);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #D4AF37;
+        }
+        .reservations-table {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #8B0000;
+            color: white;
+        }
+        tr:hover {
+            background: #f9f9f9;
+        }
+        .logout-btn {
+            background: white;
+            color: #8B0000;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>🍷 Bistrot Des Tournelles</h1>
+            <p>Admin Dashboard - Manage Reservations</p>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="stats">
+        <div class="stat-card">
+            <div class="stat-number" id="totalReservations">0</div>
+            <div>Total Reservations</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="todayReservations">0</div>
+            <div>Today</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="totalGuests">0</div>
+            <div>Total Guests</div>
+        </div>
+    </div>
+
+    <div class="reservations-table">
+        <h2>📋 All Reservations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Guests</th>
+                    <th>Special Requests</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="reservationsList">
+                <!-- Loaded dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Check if logged in
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = '/admin/login.html';
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = '/admin/login.html';
+        }
+
+        // Load reservations
+        async function loadReservations() {
+            try {
+                const response = await fetch('/api/reservations');
+                const reservations = await response.json();
+                
+                document.getElementById('totalReservations').textContent = reservations.length;
+                
+                let todayCount = 0;
+                let totalGuests = 0;
+                const tbody = document.getElementById('reservationsList');
+                tbody.innerHTML = '';
+
+                reservations.forEach(res => {
+                    totalGuests += res.guests;
+                    
+                    const today = new Date().toISOString().split('T')[0];
+                    if (res.date === today) todayCount++;
+
+                    const row = `
+                        <tr>
+                            <td>${res.date}</td>
+                            <td>${res.time}</td>
+                            <td>${res.name}</td>
+                            <td>${res.phone}</td>
+                            <td>${res.guests}</td>
+                            <td>${res.special_requests || '-'}</td>
+                            <td><span style="color: green; font-weight: bold;">✓ ${res.status}</span></td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+
+                document.getElementById('todayReservations').textContent = todayCount;
+                document.getElementById('totalGuests').textContent = totalGuests;
+
+            } catch (error) {
+                console.error('Error loading reservations:', error);
+            }
+        }
+
+        loadReservations();
+    </script>
+</body>
+</html>
