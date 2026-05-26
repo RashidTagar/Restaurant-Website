@@ -45,7 +45,28 @@ app.get('/reservations', (req, res) => {
 app.get('/contact', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/contact.html'));
 });
+   // Import auth routes
+const authRoutes = require('./routes/auth');
 
+// Use auth routes
+app.use('/api/auth', authRoutes);
+
+// Protect admin routes (optional middleware)
+const authenticateToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Access denied' });
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+};
+
+// Protect admin routes with authentication
+app.use('/admin', authenticateToken);
 // Start server
 app.listen(PORT, () => {
     console.log(`🍷 Server running at http://localhost:${PORT}`);
