@@ -3,6 +3,60 @@
 <head>
     <title>Admin Login - Bistrot Des Tournelles</title>
     <style>
+        <script>
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const messageDiv = document.getElementById('message') || document.createElement('div');
+    messageDiv.id = 'message';
+    document.querySelector('form').appendChild(messageDiv);
+    
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: username.includes('@') ? username : null,
+          phone: username.includes('@') ? null : username,
+          password: password
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Save token & redirect
+        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userData', JSON.stringify(data.user));
+        messageDiv.className = 'message success';
+        messageDiv.textContent = '✅ Login successful! Redirecting...';
+        messageDiv.style.display = 'block';
+        setTimeout(() => {
+          window.location.href = '/admin/dashboard.html';
+        }, 1500);
+      } else {
+        messageDiv.className = 'message error';
+        messageDiv.textContent = '❌ ' + (data.error || 'Invalid credentials');
+        messageDiv.style.display = 'block';
+      }
+    } catch (error) {
+      messageDiv.className = 'message error';
+      messageDiv.textContent = '❌ Connection error. Please try again.';
+      messageDiv.style.display = 'block';
+    }
+  });
+  
+  // Add message styles if not present
+  const style = document.createElement('style');
+  style.textContent = `
+    .message { padding: 0.8rem; border-radius: 8px; margin-top: 1rem; text-align: center; font-weight: 500; }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+  `;
+  document.head.appendChild(style);
+</script>
         body {
             font-family: Arial;
             display: flex;
