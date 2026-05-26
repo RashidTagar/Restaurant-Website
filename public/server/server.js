@@ -68,6 +68,40 @@ const authenticateToken = (req, res, next) => {
 
 // Protect admin routes with authentication
 app.use('/admin', authenticateToken);
+
+
+
+// Auth login route
+app.post('/api/auth/login', (req, res) => {
+  const { email, phone, password } = req.body;
+  const identifier = email || phone;
+  
+  // Simple demo auth (replace with real DB query later)
+  const db = require('./models/database');
+  db.get(`SELECT * FROM users WHERE email = ? OR phone = ?`, [identifier, identifier], async (err, user) => {
+    if (err || !user) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+    
+    // For demo: accept any password (remove in production)
+    const bcrypt = require('bcryptjs');
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ error: 'Invalid password' });
+    
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign({ userId: user.id, email: user.email }, process.env.JWT_SECRET || 'demo-secret', { expiresIn: '7d' });
+    
+    res.json({
+      message: 'Login successful',
+      token,
+      user: { id: user.id, email: user.email, role: 'admin' }
+    });
+  });
+});
+
+
+
+
 // Start server
 app.listen(PORT, () => {
     console.log(`🍷 Server running at http://localhost:${PORT}`);
