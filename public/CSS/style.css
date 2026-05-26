@@ -848,4 +848,27 @@ img {
 
 .footer-bottom i {
     color: #e74c3c;
+} 
+
+
+.auth-nav {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.auth-nav .nav-link {
+  color: #D4AF37;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border: 2px solid #D4AF37;
+  border-radius: 25px;
+  transition: all 0.3s;
+}
+.auth-nav .nav-link:hover {
+  background: #D4AF37;
+  color: #8B0000;
+}
+@media (max-width: 768px) {
+  .auth-nav { margin-top: 1rem; }
 }
